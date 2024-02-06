@@ -1,0 +1,11 @@
+dropparty:
+  timer: 5;
+
+location:
+  ==: org.bukkit.Location
+  world: world
+  x: 8.554881566664674
+  y: 103.875
+  z: -4.459582985013056
+  pitch: 89.79886
+  yaw: -43.746105

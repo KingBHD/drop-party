@@ -1,0 +1,15 @@
+name: DropParty
+version: '${project.version}'
+main: me.kingbhd.dropparty.DropParty
+api-version: '1.16'
+
+commands:
+  dropparty:
+    description: To initiate drop-party
+    aliases: [ dp ]
+
+permissions:
+  dropparty.admin:
+    default: op
+  dropparty.player:
+    default: true
