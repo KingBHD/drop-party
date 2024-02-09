@@ -10,6 +10,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.Objects;
 
 public class AdminMenu extends PaginatedMenuHolder {
 
@@ -42,12 +43,12 @@ public class AdminMenu extends PaginatedMenuHolder {
             if (ChatColor.stripColor(e.getCurrentItem().getItemMeta().getDisplayName()).equalsIgnoreCase("Previous")) {
                 if (page != 0) {
                     page = page - 1;
-                    super.open();
+                    super.open(Objects.requireNonNull(((Player) e.getWhoClicked()).getPlayer()));
                 }
             } else if (ChatColor.stripColor(e.getCurrentItem().getItemMeta().getDisplayName()).equalsIgnoreCase("Next")) {
                 if (!((index + 1) >= playerItems.size())) {
                     page = page + 1;
-                    super.open();
+                    super.open(Objects.requireNonNull(((Player) e.getWhoClicked()).getPlayer()));
                 }
             }
         }

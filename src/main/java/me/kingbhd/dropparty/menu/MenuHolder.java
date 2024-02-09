@@ -24,10 +24,10 @@ public abstract class MenuHolder implements InventoryHolder {
 
     public abstract void setMenuItems(Player player);
 
-    public void open() {
+    public void open(Player displayTo) {
         inventory = Bukkit.createInventory(this, getSlots(), getMenuName());
         this.setMenuItems(player);
-        player.openInventory(inventory);
+        displayTo.openInventory(inventory);
     }
 
     @Override

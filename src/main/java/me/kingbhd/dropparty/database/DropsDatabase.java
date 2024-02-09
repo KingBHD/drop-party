@@ -45,6 +45,20 @@ public class DropsDatabase {
         return null;
     }
 
+    public List<Integer> getPlayerIds() {
+        List<Integer> ids = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement("SELECT id FROM drops;")) {
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) ids.add(rs.getInt("uuid"));
+            return ids;
+        } catch (SQLException exception) {
+            Logger logger = LoggerFactory.getLogger(DropsDatabase.class);
+            logger.error(exception.toString());
+        }
+        return null;
+    }
+
     public List<ItemStack> getPlayerItemsByUuid(String uuid) {
         try (PreparedStatement ps = conn.prepareStatement("SELECT id, username, items FROM drops WHERE uuid = ?;")) {
             ps.setString(1, uuid);
