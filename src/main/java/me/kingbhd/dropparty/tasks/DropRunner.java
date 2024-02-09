@@ -22,33 +22,33 @@ public class DropRunner extends BukkitRunnable {
     public void run() {
         if (totalPlayer == 0) this.cancel();
 
-        String playerUuid = playerUuids.get(totalPlayer);
-        ItemStack droppingStack = (ItemStack) DropParty.getDatabase().getPlayerItemsByUuid(playerUuid);
-
-        for (int i = 0; i < droppingStack.getAmount(); i++) {
-            ItemStack dropItem = new ItemStack(droppingStack);
-
-            ItemMeta im = dropItem.getItemMeta();
-            List<String> lore = new ArrayList<>();
-            if (im != null && im.hasLore()) lore = im.getLore();
-
-            Random ra = new Random();
-            lore.add("dp-dont-stack-" + ra.nextInt(999999999) + '\u0001');
-            im.setLore(lore);
-            dropItem.setItemMeta(im);
-            dropItem.setAmount(1);
-
-            Item item = dropLocation.getWorld().dropItem(dropLocation, dropItem);
-
-            double xI = Math.random() * 0.5D;
-            double zI = Math.random() * 0.5D;
-
-            Random random = new Random();
-
-            int x = random.nextInt(2) * 2 - 1;
-            int y = random.nextInt(2) * 2 - 1;
-            item.setVelocity(new Vector(xI * (double) x, 0.5D, zI * (double) y));
-        }
+//        String playerUuid = playerUuids.get(totalPlayer);
+//        ItemStack droppingStack = (ItemStack) DropParty.getDatabase().getPlayerItemsByUuid(playerUuid);
+//
+//        for (int i = 0; i < droppingStack.getAmount(); i++) {
+//            ItemStack dropItem = new ItemStack(droppingStack);
+//
+//            ItemMeta im = dropItem.getItemMeta();
+//            List<String> lore = new ArrayList<>();
+//            if (im != null && im.hasLore()) lore = im.getLore();
+//
+//            Random ra = new Random();
+//            lore.add("dp-dont-stack-" + ra.nextInt(999999999) + '\u0001');
+//            im.setLore(lore);
+//            dropItem.setItemMeta(im);
+//            dropItem.setAmount(1);
+//
+//            Item item = dropLocation.getWorld().dropItem(dropLocation, dropItem);
+//
+//            double xI = Math.random() * 0.5D;
+//            double zI = Math.random() * 0.5D;
+//
+//            Random random = new Random();
+//
+//            int x = random.nextInt(2) * 2 - 1;
+//            int y = random.nextInt(2) * 2 - 1;
+//            item.setVelocity(new Vector(xI * (double) x, 0.5D, zI * (double) y));
+//        }
         --totalPlayer;
     }
 

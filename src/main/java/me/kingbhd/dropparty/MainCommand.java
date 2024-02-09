@@ -1,8 +1,8 @@
 package me.kingbhd.dropparty;
 
-import me.kingbhd.dropparty.managers.ContainerManager;
+import me.kingbhd.dropparty.gui.AdminGUI;
+import me.kingbhd.dropparty.gui.PlayerGUI;
 import me.kingbhd.dropparty.managers.MessagesManager;
-import me.kingbhd.dropparty.menu.gui.AdminMenu;
 import me.kingbhd.dropparty.tasks.DropCountdown;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,7 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainCommand implements CommandExecutor, TabCompleter {
-    public DropParty plugin;
+    public final DropParty plugin;
+
     protected DropCountdown dropCountdown;
 
     public MainCommand(DropParty plugin) {
@@ -28,6 +29,7 @@ public class MainCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) return false;
+        Player player = (Player) sender;
 
         if (args.length >= 1) {
             if (!sender.hasPermission("dropparty.admin")) {
@@ -35,81 +37,24 @@ public class MainCommand implements CommandExecutor, TabCompleter {
                 return false;
             }
 
-            if (args[0].equalsIgnoreCase("help")) {
-                help(sender);
-            } else if (args[0].equalsIgnoreCase("show")) {
-                if (args.length != 2) {
-                    sender.sendMessage(MessagesManager.getColoredMessage("&7Please provide a player to display their DP contents!"));
-                    return false;
-                }
-                String playerName = args[1];
-
-                Player target = Bukkit.getServer().getPlayer(playerName);
-                if (target != null) {
-                    new AdminMenu(target).open((Player) sender);
-                    return true;
-                }
-            } else if (args[0].equalsIgnoreCase("set")) {
-                Player player = (Player) sender;
-                Location playerLocation = player.getLocation();
-
-                plugin.getConfig().set("location", playerLocation);
-                plugin.saveConfig();
-                sender.sendMessage(MessagesManager.getColoredMessage("&aLocation has been set to &2&l&nX:" + playerLocation.getBlockX() + " Y:" + playerLocation.getBlockY() + " Z:" + playerLocation.getBlockZ()));
-            } else if (args[0].equalsIgnoreCase("start")) {
-                startDrop(sender);
-            } else if (args[0].equalsIgnoreCase("cancel")) {
-                if (dropCountdown != null) {
-                    BukkitRunnable dropRunner = dropCountdown.getDropRunner();
-                    if (dropRunner != null && dropCountdown.isRunning()) {
-                        Bukkit.broadcastMessage(ChatColor.RED + "DropParty has been stopped by " + ChatColor.BOLD + "admin");
-                        dropRunner.cancel();
+            if (args[0].equalsIgnoreCase("help")) help(sender);
+            else if (args[0].equalsIgnoreCase("set")) set(player);
+            else if (args[0].equalsIgnoreCase("start")) start(sender);
+            else if (args[0].equalsIgnoreCase("cancel")) cancel(player);
+            else if (args[0].equalsIgnoreCase("show")) {
+                if (args.length != 2) show(player, null);
+                else {
+                    String playerUsername = args[1];
+                    Player target = Bukkit.getServer().getPlayer(playerUsername);
+                    if (target == null) {
+                        sender.sendMessage(MessagesManager.getColoredMessage("&7Provided username does not exists."));
                         return true;
                     }
+                    show(player, target);
                 }
-                sender.sendMessage(ChatColor.GRAY + "DropParty aren't active at the moment.");
-                return true;
-            }
-        } else {
-            Player player = (Player) sender;
-
-            if (!player.hasPermission("dropparty.player")) {
-                sender.sendMessage(MessagesManager.getColoredMessage("&7You don't have permission to use this command!"));
-                return false;
-            }
-
-            ContainerManager cm = new ContainerManager(player);
-            cm.openInventory();
-        }
+            } else sender.sendMessage(MessagesManager.getColoredMessage("&7Invalid command."));
+        } else open(player);
         return true;
-    }
-
-    // Command Handlers
-    public void help(CommandSender sender) {
-        sender.sendMessage(MessagesManager.getColoredMessage("&7[ [ &8[&aDropParty&8] &7] ]"));
-        sender.sendMessage(MessagesManager.getColoredMessage(" "));
-        sender.sendMessage(MessagesManager.getColoredMessage("&6/dp &8To participate in drop-party."));
-        sender.sendMessage(MessagesManager.getColoredMessage("&6/dp set &8Set location for drop party."));
-        sender.sendMessage(MessagesManager.getColoredMessage("&6/dp show <username> &8To see what a player has donated."));
-        sender.sendMessage(MessagesManager.getColoredMessage("&6/dp help &8Shows this message."));
-        sender.sendMessage(MessagesManager.getColoredMessage(" "));
-        sender.sendMessage(MessagesManager.getColoredMessage("&7[ [ &8[&aDropParty&8] &7] ]"));
-    }
-
-    public void startDrop(CommandSender sender) {
-
-
-        dropCountdown = new DropCountdown(plugin);
-        dropCountdown.runTaskTimer(plugin, 0, 20L);
-
-
-//        List<ItemStack> playerItems = database.getPlayerItemsByUuid();
-
-//        Location location = config.getLocation("location");
-//        dropRunner = new DropRunner();
-//        dropRunner.setDropLocation(location);
-//        dropRunner.setToBeDropped(toBeDropped);
-//        dropRunner.runTaskTimer(plugin, 20L, 40L);
     }
 
     @Override
@@ -135,4 +80,61 @@ public class MainCommand implements CommandExecutor, TabCompleter {
 
         return null;
     }
+
+
+    // Command Handlers
+    public void open(Player player) {
+        if (!player.hasPermission("dropparty.player")) {
+            player.sendMessage(MessagesManager.getColoredMessage("&7You don't have permission to use this command!"));
+        }
+
+        new PlayerGUI(this.plugin, player).open();
+    }
+
+    public void show(Player player, Player target) {
+        new AdminGUI(this.plugin, player).open(target);
+    }
+
+    public void help(CommandSender sender) {
+        sender.sendMessage(MessagesManager.getColoredMessage("&7[ [ &8[&aDropParty&8] &7] ]"));
+        sender.sendMessage(MessagesManager.getColoredMessage(" "));
+        sender.sendMessage(MessagesManager.getColoredMessage("&6/dp &8To participate in drop-party."));
+        sender.sendMessage(MessagesManager.getColoredMessage("&6/dp set &8Set location for drop party."));
+        sender.sendMessage(MessagesManager.getColoredMessage("&6/dp show <username> &8To see what a player has donated."));
+        sender.sendMessage(MessagesManager.getColoredMessage("&6/dp help &8Shows this message."));
+        sender.sendMessage(MessagesManager.getColoredMessage(" "));
+        sender.sendMessage(MessagesManager.getColoredMessage("&7[ [ &8[&aDropParty&8] &7] ]"));
+    }
+
+    public void set(Player player) {
+        Location playerLocation = player.getLocation();
+
+        plugin.getConfig().set("location", playerLocation);
+        plugin.saveConfig();
+
+        player.sendMessage(MessagesManager.getColoredMessage(
+                "&aLocation has been set to &2&l&nX:"
+                        + playerLocation.getBlockX() + " Y:"
+                        + playerLocation.getBlockY() + " Z:"
+                        + playerLocation.getBlockZ()
+        ));
+    }
+
+    public void start(CommandSender sender) {
+        dropCountdown = new DropCountdown(plugin);
+        dropCountdown.runTaskTimer(plugin, 0, 20L);
+    }
+
+    public void cancel(Player player) {
+        if (dropCountdown != null) {
+            BukkitRunnable dropRunner = dropCountdown.getDropRunner();
+            if (dropRunner != null && dropCountdown.isRunning()) {
+                Bukkit.broadcastMessage(ChatColor.RED + "DropParty has been stopped by " + ChatColor.BOLD + "admin");
+                dropRunner.cancel();
+                return;
+            }
+        }
+        player.sendMessage(ChatColor.GRAY + "DropParty aren't active at the moment.");
+    }
+
 }

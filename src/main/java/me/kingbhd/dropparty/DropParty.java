@@ -14,14 +14,15 @@ import java.sql.SQLException;
 import java.util.Objects;
 
 public final class DropParty extends JavaPlugin {
-    private static DropsDatabase database;
     private final PluginDescriptionFile pdfFile = getDescription();
     public String prefix = ChatColor.RED + "" + ChatColor.BOLD + '[' + ChatColor.YELLOW + ChatColor.BOLD + "DropParty" + ChatColor.RED + ChatColor.BOLD + ']';
     public String version = pdfFile.getVersion();
+    private DropsDatabase dropsDatabase;
     private Logger logger;
 
-    public static DropsDatabase getDatabase() {
-        return database;
+
+    public DropsDatabase getDatabase() {
+        return dropsDatabase;
     }
 
     @Override
@@ -36,15 +37,6 @@ public final class DropParty extends JavaPlugin {
 
         this.logger.info(this.prefix + " has been enabled! &fVersion: &l" + version);
         Bukkit.getConsoleSender().sendMessage(prefix + " &eHas been enabled! &fVersion: " + version);
-    }
-
-    @Override
-    public void onDisable() {
-        try {
-            database.closeConnection();
-        } catch (SQLException sqlException) {
-            this.logger.error(sqlException.toString());
-        }
     }
 
     // Managers
@@ -63,7 +55,7 @@ public final class DropParty extends JavaPlugin {
                 boolean ignored = getDataFolder().mkdirs();
             }
 
-            database = new DropsDatabase(getDataFolder().getAbsolutePath() + "/dropparty.db");
+            dropsDatabase = new DropsDatabase(getDataFolder().getAbsolutePath() + "/dropparty.db");
         } catch (SQLException exception) {
             this.logger.error(exception.toString());
             Bukkit.getPluginManager().disablePlugin(this);

@@ -14,7 +14,6 @@ import java.util.List;
 public class DropCountdown extends BukkitRunnable {
 
     private final Location location;
-    private final List<Integer> playerIds;
     private final boolean isRunning = false;
     protected DropsDatabase database;
     protected DropParty plugin;
@@ -23,13 +22,10 @@ public class DropCountdown extends BukkitRunnable {
 
     public DropCountdown(DropParty plugin) {
         this.plugin = plugin;
-        this.database = DropParty.getDatabase();
 
         this.countdown = this.plugin.getConfig().getInt("dropparty.timer");
         this.location = this.plugin.getConfig().getLocation("location");
 
-        this.playerIds = database.getPlayerIds();
-        Collections.shuffle(playerIds);
     }
 
     public boolean isRunning() {

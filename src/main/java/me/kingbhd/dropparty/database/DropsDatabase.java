@@ -1,5 +1,11 @@
 package me.kingbhd.dropparty.database;
 
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.TableUtils;
+import me.kingbhd.dropparty.database.entities.PlayerDrops;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -11,64 +17,65 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.sql.*;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
-
 public class DropsDatabase {
-    private final Connection conn;
+    private static final Logger logger = LoggerFactory.getLogger(DropsDatabase.class);
+    private final Dao<PlayerDrops, String> playerDropsDao;
 
     public DropsDatabase(String path) throws SQLException {
-        conn = DriverManager.getConnection("jdbc:sqlite:" + path);
-        try (Statement statement = conn.createStatement()) {
-            statement.execute("CREATE TABLE IF NOT EXISTS drops (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT NOT NULL, username TEXT NOT NULL, items TEXT NOT NULL)");
+        ConnectionSource connectionSource = new JdbcConnectionSource("jdbc:sqlite:" + path);
+        TableUtils.createTableIfNotExists(connectionSource, PlayerDrops.class);
+        playerDropsDao = DaoManager.createDao(connectionSource, PlayerDrops.class);
+    }
+
+    public void removePlayer(String pk) {
+        try {
+            playerDropsDao.deleteById(pk);
+        } catch (SQLException exception) {
+            logger.error(exception.toString());
+
         }
     }
 
-    public void closeConnection() throws SQLException {
-        if (conn != null && !conn.isClosed()) conn.close();
-    }
+    public void addPlayer(Player player, List<ItemStack> itemStackList) {
+        try {
+            for (ItemStack item : itemStackList) {
 
-    public List<String> getPlayerUuids() {
-        List<String> ids = new ArrayList<>();
-        try (PreparedStatement ps = conn.prepareStatement("SELECT uuid FROM drops;")) {
-            ResultSet rs = ps.executeQuery();
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                BukkitObjectOutputStream bukkitObjectOutputStream = new BukkitObjectOutputStream(byteArrayOutputStream);
 
-            while (rs.next()) ids.add(rs.getString("uuid"));
-            return ids;
-        } catch (SQLException exception) {
-            Logger logger = LoggerFactory.getLogger(DropsDatabase.class);
+                bukkitObjectOutputStream.writeObject(item);
+                bukkitObjectOutputStream.flush();
+
+                byte[] rawData = byteArrayOutputStream.toByteArray();
+                String encodedData = Base64.getEncoder().encodeToString(rawData);
+
+                // Save to Database
+                PlayerDrops playerDrops = new PlayerDrops();
+                playerDrops.setUuid(player.getUniqueId().toString());
+                playerDrops.setUsername(player.getDisplayName());
+                playerDrops.setStack(encodedData);
+                playerDropsDao.create(playerDrops);
+
+                bukkitObjectOutputStream.close();
+            }
+        } catch (SQLException | IOException exception) {
             logger.error(exception.toString());
         }
-        return null;
     }
 
-    public List<Integer> getPlayerIds() {
-        List<Integer> ids = new ArrayList<>();
-        try (PreparedStatement ps = conn.prepareStatement("SELECT id FROM drops;")) {
-            ResultSet rs = ps.executeQuery();
+    public List<ItemStack> getStacksByPlayer(Player player) {
+        List<ItemStack> itemStackList = new ArrayList<>();
 
-            while (rs.next()) ids.add(rs.getInt("uuid"));
-            return ids;
-        } catch (SQLException exception) {
-            Logger logger = LoggerFactory.getLogger(DropsDatabase.class);
-            logger.error(exception.toString());
-        }
-        return null;
-    }
+        try {
+            List<PlayerDrops> playerDropsList = playerDropsDao.queryForEq("uuid", player.getUniqueId().toString());
+            for (PlayerDrops playerDrops : playerDropsList) {
 
-    public List<ItemStack> getPlayerItemsByUuid(String uuid) {
-        try (PreparedStatement ps = conn.prepareStatement("SELECT id, username, items FROM drops WHERE uuid = ?;")) {
-            ps.setString(1, uuid);
-            ResultSet rs = ps.executeQuery();
-
-            List<ItemStack> items = new ArrayList<>();
-            while (rs.next()) {
-                String encodedItem = rs.getString("items");
-
-                byte[] rawData = Base64.getDecoder().decode(encodedItem);
+                byte[] rawData = Base64.getDecoder().decode(playerDrops.getStack());
                 ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawData);
                 BukkitObjectInputStream bukkitObjectInputStream = new BukkitObjectInputStream(byteArrayInputStream);
 
@@ -78,59 +85,51 @@ public class DropsDatabase {
                 List<String> lore = new ArrayList<>();
                 if (im != null) {
                     if (im.hasLore()) lore = im.getLore();
-                    String username = rs.getString("username");
 
                     if (lore == null) lore = new ArrayList<>();
-                    lore.add("DP Donation: " + username);
                     im.setLore(lore);
                     itemStack.setItemMeta(im);
                 }
-                items.add(itemStack);
-
+                itemStackList.add(itemStack);
                 bukkitObjectInputStream.close();
             }
-            return items;
-        } catch (IOException | ClassNotFoundException | SQLException exception) {
-            Logger logger = LoggerFactory.getLogger(DropsDatabase.class);
+            return itemStackList;
+        } catch (SQLException | ClassNotFoundException | IOException exception) {
             logger.error(exception.toString());
         }
         return null;
     }
 
-    // Insert to ItemStack
-    public void addPlayerItem(Player player, String encodedItem) throws SQLException {
-        try (PreparedStatement ps = conn.prepareStatement("INSERT INTO drops (uuid, username, items) VALUES (?, ?, ?)")) {
-            ps.setString(1, player.getUniqueId().toString());
-            ps.setString(2, player.getName());
-            ps.setString(3, encodedItem);
-            ps.executeUpdate();
-        }
-    }
+    public List<ItemStack> getStacks() {
+        List<ItemStack> itemStackList = new ArrayList<>();
 
-    public void savePlayerItems(Player player, List<ItemStack> items) {
         try {
-            // Encode Serialized ItemStack
-            for (ItemStack item : items) {
-                System.out.println("Stack: " + item);
+            List<PlayerDrops> playerDropsList = playerDropsDao.queryForAll();
+            for (PlayerDrops playerDrops : playerDropsList) {
 
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                BukkitObjectOutputStream bukkitObjectOutputStream = new BukkitObjectOutputStream(byteArrayOutputStream);
+                byte[] rawData = Base64.getDecoder().decode(playerDrops.getStack());
+                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawData);
+                BukkitObjectInputStream bukkitObjectInputStream = new BukkitObjectInputStream(byteArrayInputStream);
 
-                bukkitObjectOutputStream.writeObject(item);
-                bukkitObjectOutputStream.flush();
+                ItemStack itemStack = (ItemStack) bukkitObjectInputStream.readObject();
 
-                byte[] rawData = byteArrayOutputStream.toByteArray();
+                ItemMeta im = itemStack.getItemMeta();
+                List<String> lore = new ArrayList<>();
+                if (im != null) {
+                    if (im.hasLore()) lore = im.getLore();
 
-                // Save to Database
-                String encodedData = Base64.getEncoder().encodeToString(rawData);
-                addPlayerItem(player, encodedData);
-
-                bukkitObjectOutputStream.close();
+                    if (lore == null) lore = new ArrayList<>();
+                    im.setLore(lore);
+                    itemStack.setItemMeta(im);
+                }
+                itemStackList.add(itemStack);
+                bukkitObjectInputStream.close();
             }
-        } catch (SQLException | IOException exception) {
-            Logger logger = LoggerFactory.getLogger(DropsDatabase.class);
+            return itemStackList;
+        } catch (SQLException | ClassNotFoundException | IOException exception) {
             logger.error(exception.toString());
         }
-
+        return null;
     }
+
 }
