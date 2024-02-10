@@ -5,14 +5,16 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
+import me.kingbhd.dropparty.DropParty;
 import me.kingbhd.dropparty.database.entities.PlayerDrops;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.tinylog.Logger;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -23,21 +25,21 @@ import java.util.Base64;
 import java.util.List;
 
 public class DropsDatabase {
-    private static final Logger logger = LoggerFactory.getLogger(DropsDatabase.class);
     private final Dao<PlayerDrops, String> playerDropsDao;
+    private final DropParty plugin;
 
-    public DropsDatabase(String path) throws SQLException {
+    public DropsDatabase(String path, DropParty plugin) throws SQLException {
         ConnectionSource connectionSource = new JdbcConnectionSource("jdbc:sqlite:" + path);
         TableUtils.createTableIfNotExists(connectionSource, PlayerDrops.class);
         playerDropsDao = DaoManager.createDao(connectionSource, PlayerDrops.class);
+        this.plugin = plugin;
     }
 
     public void removePlayer(String pk) {
         try {
             playerDropsDao.deleteById(pk);
         } catch (SQLException exception) {
-            logger.error(exception.toString());
-
+            Logger.error(exception, "[DropParty] Failed to remove player from database.");
         }
     }
 
@@ -64,7 +66,7 @@ public class DropsDatabase {
                 bukkitObjectOutputStream.close();
             }
         } catch (SQLException | IOException exception) {
-            logger.error(exception.toString());
+            Logger.error(exception, "[DropParty] Failed to add player in database.");
         }
     }
 
@@ -87,6 +89,9 @@ public class DropsDatabase {
                     if (im.hasLore()) lore = im.getLore();
 
                     if (lore == null) lore = new ArrayList<>();
+                    lore.add("Donor: " + playerDrops.getUsername());
+                    im.getPersistentDataContainer().set(new NamespacedKey(this.plugin, "donor"), PersistentDataType.STRING, playerDrops.getUsername());
+                    im.getPersistentDataContainer().set(new NamespacedKey(this.plugin, "pk"), PersistentDataType.INTEGER, playerDrops.getId());
                     im.setLore(lore);
                     itemStack.setItemMeta(im);
                 }
@@ -95,7 +100,7 @@ public class DropsDatabase {
             }
             return itemStackList;
         } catch (SQLException | ClassNotFoundException | IOException exception) {
-            logger.error(exception.toString());
+            Logger.error(exception, "[DropParty] Failed to get player data from the database.");
         }
         return null;
     }
@@ -119,6 +124,9 @@ public class DropsDatabase {
                     if (im.hasLore()) lore = im.getLore();
 
                     if (lore == null) lore = new ArrayList<>();
+                    lore.add("Donor: " + playerDrops.getUsername());
+                    im.getPersistentDataContainer().set(new NamespacedKey(this.plugin, "donor"), PersistentDataType.STRING, playerDrops.getUsername());
+                    im.getPersistentDataContainer().set(new NamespacedKey(this.plugin, "pk"), PersistentDataType.INTEGER, playerDrops.getId());
                     im.setLore(lore);
                     itemStack.setItemMeta(im);
                 }
@@ -127,7 +135,7 @@ public class DropsDatabase {
             }
             return itemStackList;
         } catch (SQLException | ClassNotFoundException | IOException exception) {
-            logger.error(exception.toString());
+            Logger.error(exception, "[DropParty] Failed to get players stacks from database.");
         }
         return null;
     }

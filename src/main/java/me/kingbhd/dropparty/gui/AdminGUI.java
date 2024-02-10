@@ -6,13 +6,16 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class AdminGUI implements InventoryHolder {
     protected static final int perPage = 47;
@@ -36,7 +39,21 @@ public class AdminGUI implements InventoryHolder {
         this.stacks = stacks;
     }
 
-    public void onClose(InventoryClickEvent event) {
+    public void onClose(InventoryCloseEvent event) {
+//        System.out.println("Displayed: " + this.stacks);
+
+        List<ItemStack> itemStackList = new ArrayList<>();
+        Arrays.stream(event.getInventory().getContents()).filter(Objects::nonNull).filter(i -> {
+            ItemMeta im = i.getItemMeta();
+            return im != null && im.getDisplayName().isEmpty();
+        }).forEach(itemStackList::add);
+        if (itemStackList.isEmpty()) {
+        }
+
+//        System.out.println("AfterClosed: " + itemStackList);
+    }
+
+    public void onClick(InventoryClickEvent event) {
         if (event.getCurrentItem() == null) return;
         ItemStack clickedItem = event.getCurrentItem();
         Player player = (Player) event.getWhoClicked();
@@ -49,13 +66,13 @@ public class AdminGUI implements InventoryHolder {
                 if (clickedItem.getItemMeta() == null) break;
                 String escapedItemName = ChatColor.stripColor(clickedItem.getItemMeta().getDisplayName());
 
-                if (escapedItemName.equalsIgnoreCase("previous")) {
+                if (escapedItemName.equalsIgnoreCase("Previous")) {
                     if (this.page != 0) {
                         this.page = this.page - 1;
                         this.open(null);
                     }
-                } else if (escapedItemName.equalsIgnoreCase("next")) {
-                    if (this.page != 0) {
+                } else if (escapedItemName.equalsIgnoreCase("Next")) {
+                    if (!((index + 1) >= this.stacks.size())) {
                         this.page = this.page + 1;
                         this.open(null);
                     }

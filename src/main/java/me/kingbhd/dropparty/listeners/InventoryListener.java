@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -25,6 +26,9 @@ public class InventoryListener implements Listener {
             ((PlayerGUI) iHolder).onClose(event);
         }
         // Admin GUI Close Handler
+        if (iHolder instanceof AdminGUI) {
+            ((AdminGUI) iHolder).onClose(event);
+        }
     }
 
     @EventHandler
@@ -33,10 +37,11 @@ public class InventoryListener implements Listener {
         InventoryHolder iHolder = inventory.getHolder();
 
         if (iHolder instanceof AdminGUI && event.getClickedInventory() != null) {
-            if (event.getSlot() > 44) event.setCancelled(true);
             if (event.getCurrentItem() == null) return;
+            if (event.getSlot() > 44) event.setCancelled(true);
+            if (event.getClickedInventory().getType() == InventoryType.PLAYER) event.setCancelled(true);
 
-            ((AdminGUI) iHolder).onClose(event);
+            ((AdminGUI) iHolder).onClick(event);
         }
     }
 
@@ -53,7 +58,7 @@ public class InventoryListener implements Listener {
             List<String> lore = itemMeta.getLore();
             if (lore != null && !lore.isEmpty()) {
                 lore.removeIf(s -> s.contains("dp-dont-stack"));
-                lore.removeIf(s -> s.contains("DP Donation:"));
+                lore.removeIf(s -> s.contains("Donor:"));
                 itemMeta.setLore(lore);
                 e.getItem().getItemStack().setItemMeta(itemMeta);
             }

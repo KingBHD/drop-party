@@ -81,7 +81,6 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         return null;
     }
 
-
     // Command Handlers
     public void open(Player player) {
         if (!player.hasPermission("dropparty.player")) {
