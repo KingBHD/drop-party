@@ -43,6 +43,14 @@ public class DropsDatabase {
         }
     }
 
+    public void resetDrops() {
+        try {
+            TableUtils.clearTable(playerDropsDao.getConnectionSource(), PlayerDrops.class);
+        } catch (SQLException exception) {
+            Logger.error(exception, "[DropParty] Failed to reset drops records.");
+        }
+    }
+
     public void addPlayer(Player player, List<ItemStack> itemStackList) {
         try {
             for (ItemStack item : itemStackList) {
@@ -105,6 +113,41 @@ public class DropsDatabase {
         return null;
     }
 
+    public List<ItemStack> getStacksByPK(Integer pk) {
+        List<ItemStack> itemStackList = new ArrayList<>();
+
+        try {
+            List<PlayerDrops> playerDropsList = playerDropsDao.queryForEq("id", pk);
+            for (PlayerDrops playerDrops : playerDropsList) {
+
+                byte[] rawData = Base64.getDecoder().decode(playerDrops.getStack());
+                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawData);
+                BukkitObjectInputStream bukkitObjectInputStream = new BukkitObjectInputStream(byteArrayInputStream);
+
+                ItemStack itemStack = (ItemStack) bukkitObjectInputStream.readObject();
+
+//                ItemMeta im = itemStack.getItemMeta();
+//                List<String> lore = new ArrayList<>();
+//                if (im != null) {
+//                    if (im.hasLore()) lore = im.getLore();
+//
+//                    if (lore == null) lore = new ArrayList<>();
+//                    lore.add("Donor: " + playerDrops.getUsername());
+//                    im.getPersistentDataContainer().set(new NamespacedKey(this.plugin, "donor"), PersistentDataType.STRING, playerDrops.getUsername());
+//                    im.getPersistentDataContainer().set(new NamespacedKey(this.plugin, "pk"), PersistentDataType.INTEGER, playerDrops.getId());
+//                    im.setLore(lore);
+//                    itemStack.setItemMeta(im);
+//                }
+                itemStackList.add(itemStack);
+                bukkitObjectInputStream.close();
+            }
+            return itemStackList;
+        } catch (SQLException | ClassNotFoundException | IOException exception) {
+            Logger.error(exception, "[DropParty] Failed to get player data from the database.");
+        }
+        return null;
+    }
+
     public List<ItemStack> getStacks() {
         List<ItemStack> itemStackList = new ArrayList<>();
 
@@ -140,4 +183,17 @@ public class DropsDatabase {
         return null;
     }
 
+    public List<Integer> getPlayerDropPrimaryKeys() {
+        List<Integer> playersUuid = new ArrayList<>();
+        try {
+            List<PlayerDrops> playerDropsList = playerDropsDao.queryForAll();
+            for (PlayerDrops playerDrops : playerDropsList) {
+                playersUuid.add(playerDrops.getId());
+            }
+            return playersUuid;
+        } catch (SQLException exception) {
+            Logger.error(exception, "[DropParty] Failed to get players pk from database.");
+        }
+        return null;
+    }
 }

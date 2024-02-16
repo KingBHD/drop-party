@@ -1,5 +1,4 @@
-dropparty:
-  timer: 5;
+countdown: 5;
 
 location:
   ==: org.bukkit.Location

@@ -4,6 +4,7 @@ import me.kingbhd.dropparty.gui.AdminGUI;
 import me.kingbhd.dropparty.gui.PlayerGUI;
 import me.kingbhd.dropparty.managers.MessagesManager;
 import me.kingbhd.dropparty.tasks.DropCountdown;
+import me.kingbhd.dropparty.tasks.DropRunner;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -12,7 +13,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +39,7 @@ public class MainCommand implements CommandExecutor, TabCompleter {
 
             if (args[0].equalsIgnoreCase("help")) help(sender);
             else if (args[0].equalsIgnoreCase("set")) set(player);
+            else if (args[0].equalsIgnoreCase("reset")) reset(player);
             else if (args[0].equalsIgnoreCase("start")) start(sender);
             else if (args[0].equalsIgnoreCase("cancel")) cancel(player);
             else if (args[0].equalsIgnoreCase("show")) {
@@ -91,7 +92,7 @@ public class MainCommand implements CommandExecutor, TabCompleter {
     }
 
     public void show(Player player, Player target) {
-        new AdminGUI(this.plugin, player).open(target);
+        new AdminGUI(this.plugin, player, target).open();
     }
 
     public void help(CommandSender sender) {
@@ -120,20 +121,25 @@ public class MainCommand implements CommandExecutor, TabCompleter {
     }
 
     public void start(CommandSender sender) {
-        dropCountdown = new DropCountdown(plugin);
-        dropCountdown.runTaskTimer(plugin, 0, 20L);
+        dropCountdown = new DropCountdown(this.plugin);
+        dropCountdown.runTaskTimer(this.plugin, 0, 20L);
     }
 
     public void cancel(Player player) {
-        if (dropCountdown != null) {
-            BukkitRunnable dropRunner = dropCountdown.getDropRunner();
-            if (dropRunner != null && dropCountdown.isRunning()) {
-                Bukkit.broadcastMessage(ChatColor.RED + "DropParty has been stopped by " + ChatColor.BOLD + "admin");
-                dropRunner.cancel();
-                return;
-            }
+        boolean isRunning = this.plugin.getRunner().stop();
+        if (!isRunning) {
+            player.sendMessage(ChatColor.GRAY + "DropParty aren't active at the moment.");
+        } else {
+            Bukkit.broadcastMessage(ChatColor.RED + "DropParty has been stopped by " + ChatColor.BOLD + "admin");
         }
-        player.sendMessage(ChatColor.GRAY + "DropParty aren't active at the moment.");
+    }
+
+    public void reset(Player player) {
+        this.plugin.getDatabase().resetDrops();
+        this.plugin.getRunner().stop();
+        this.plugin.getRunner().reset();
+        this.plugin.setRunner(new DropRunner(this.plugin));
+        player.sendMessage(ChatColor.RED + "DropParty has reset completely.");
     }
 
 }
