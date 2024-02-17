@@ -78,7 +78,13 @@ public class AdminGUI implements InventoryHolder {
     }
 
     public void open() {
-        inventory = Bukkit.createInventory(this, getGUISlots, getGUITitle);
+        String playerName;
+        if (this.target != null) {
+            playerName = this.target.getDisplayName();
+        } else {
+            playerName = "Global";
+        }
+        inventory = Bukkit.createInventory(this, getGUISlots, getGUITitle.replace("%player%", playerName));
         this.setMenuItems();
         this.player.openInventory(inventory);
     }
