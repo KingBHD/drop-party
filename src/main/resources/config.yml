@@ -1,11 +1,14 @@
-dropparty:
-  timer: 5;
-
 location:
-  ==: org.bukkit.Location
-  world: world
-  x: 8.554881566664674
-  y: 103.875
-  z: -4.459582985013056
-  pitch: 89.79886
-  yaw: -43.746105
+
+
+message:
+  invalid-command: "&7(&b/Dropparty&7) &cInvalid command!"
+  missing-permission-player: "&7(&b/Dropparty&7) &cYou don't have permission to use this command!"
+  missing-permission-admin: "&7(&b/Dropparty&7) &cYou don't have permission to use this command!"
+  dropparty-start: "&7(&b/Dropparty&7) &cDropparty event has been started."
+  dropparty-ended: "&7(&b/Dropparty&7) &cDropparty event has been ended."
+  dropparty-reset: "&7(&b/Dropparty&7) &cDropPart reset!"
+  dropparty-cancel-success: "&7(&b/Dropparty&7) &chave been cancelled by &e&l%admin%"
+  dropparty-cancel-failed: "&7(&b/Dropparty&7) &cDropParty haven't started yet!"
+  dropparty-gui-admin: "&7DropPatrty Admin"
+  dropparty-gui-player: "&7DropPatrty Donation"

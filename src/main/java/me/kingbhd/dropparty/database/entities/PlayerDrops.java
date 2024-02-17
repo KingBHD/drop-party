@@ -3,6 +3,10 @@ package me.kingbhd.dropparty.database.entities;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @DatabaseTable(tableName = "player_drops")
 public class PlayerDrops {
@@ -18,6 +22,16 @@ public class PlayerDrops {
 
     @DatabaseField(canBeNull = false, defaultValue = "0")
     private String stack;
+
+    public List<ItemStack> getItemStackList() {
+        return itemStackList;
+    }
+
+    public void setItemStackList(ItemStack itemStackList) {
+        this.itemStackList.add(itemStackList);
+    }
+
+    public List<ItemStack> itemStackList = new ArrayList<>();
 
     public PlayerDrops() {
     }
