@@ -1,8 +1,8 @@
 package me.kingbhd.dropparty.gui;
 
 import me.kingbhd.dropparty.DropParty;
+import me.kingbhd.dropparty.managers.MessagesManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
@@ -15,15 +15,16 @@ import java.util.List;
 import java.util.Objects;
 
 public class PlayerGUI implements InventoryHolder {
-    private static final String getGUITitle = ChatColor.translateAlternateColorCodes('&', "&7DropParty");
     private static final Integer getGUISlots = 54;
     protected final DropParty plugin;
     protected final Player player;
+    private final String getGUITitle;
     protected Inventory inventory;
 
     public PlayerGUI(DropParty plugin, Player player) {
         this.plugin = plugin;
         this.player = player;
+        this.getGUITitle = MessagesManager.getColoredMessage(this.plugin.getConfig().getString("message.dropparty-gui-player"));
     }
 
     public void onClose(InventoryCloseEvent event) {

@@ -1,6 +1,7 @@
 package me.kingbhd.dropparty.gui;
 
 import me.kingbhd.dropparty.DropParty;
+import me.kingbhd.dropparty.managers.MessagesManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 public class AdminGUI implements InventoryHolder {
     protected static final int perPage = 45;
     private static final Integer getGUISlots = 54;
-    private static final String getGUITitle = ChatColor.translateAlternateColorCodes('&', "&7DropParty");
+    private final String getGUITitle;
     protected final DropParty plugin;
     protected final Player player;
     protected final Player target;
@@ -36,6 +37,7 @@ public class AdminGUI implements InventoryHolder {
         this.plugin = plugin;
         this.player = player;
         this.target = target;
+        this.getGUITitle = MessagesManager.getColoredMessage(this.plugin.getConfig().getString("message.dropparty-gui-admin"));
     }
 
     public void setStacks(List<ItemStack> stacks) {
@@ -43,15 +45,11 @@ public class AdminGUI implements InventoryHolder {
     }
 
     public void onClose(InventoryCloseEvent event) {
-//        System.out.println("Displayed: " + getCurrentPageItems() + " Player:" + this.target);
-
         List<ItemStack> itemStackList = new ArrayList<>();
         Arrays.stream(event.getInventory().getContents()).filter(Objects::nonNull).filter(i -> {
             ItemMeta im = i.getItemMeta();
             return im != null && im.getDisplayName().isEmpty();
         }).forEach(itemStackList::add);
-
-//        System.out.println("AfterClosed: " + itemStackList);
 
         List<ItemStack> removedItems = getCurrentPageItems().stream().filter(itemStack -> !itemStackList.contains(itemStack)).collect(Collectors.toList());
         System.out.println(removedItems + " Removed Items!");
@@ -60,28 +58,22 @@ public class AdminGUI implements InventoryHolder {
     public void onClick(InventoryClickEvent event) {
         if (event.getCurrentItem() == null) return;
         ItemStack clickedItem = event.getCurrentItem();
-        Player player = (Player) event.getWhoClicked();
 
-        switch (clickedItem.getType()) {
-            case MAP:
-                // Todo: Close Inventory?
-                break;
-            case ARROW:
-                if (clickedItem.getItemMeta() == null) break;
-                String escapedItemName = ChatColor.stripColor(clickedItem.getItemMeta().getDisplayName());
+        if (clickedItem.getType() == Material.ARROW) {
+            if (clickedItem.getItemMeta() == null) return;
+            String escapedItemName = ChatColor.stripColor(clickedItem.getItemMeta().getDisplayName());
 
-                if (escapedItemName.equalsIgnoreCase("Previous")) {
-                    if (this.page != 0) {
-                        this.page = this.page - 1;
-                        this.open();
-                    }
-                } else if (escapedItemName.equalsIgnoreCase("Next")) {
-                    if (!((index + 1) >= this.stacks.size())) {
-                        this.page = this.page + 1;
-                        this.open();
-                    }
+            if (escapedItemName.equalsIgnoreCase("Previous")) {
+                if (this.page != 0) {
+                    this.page = this.page - 1;
+                    this.open();
                 }
-                break;
+            } else if (escapedItemName.equalsIgnoreCase("Next")) {
+                if (!((index + 1) >= this.stacks.size())) {
+                    this.page = this.page + 1;
+                    this.open();
+                }
+            }
         }
     }
 
@@ -127,12 +119,7 @@ public class AdminGUI implements InventoryHolder {
         inventory.setItem(52, FILLER_GLASS);
         inventory.setItem(53, FILLER_GLASS);
 
-        if (this.target != null) {
-            this.setStacks(this.plugin.getDatabase().getStacksByPlayer(this.target));
-        } else {
-            this.setStacks(this.plugin.getDatabase().getStacks());
-        }
-
+        this.setStacks(this.plugin.getDatabase().getStacks(this.target));
         if (this.stacks != null && !this.stacks.isEmpty()) {
             getCurrentPageItems().forEach(this.inventory::addItem);
         }

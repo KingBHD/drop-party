@@ -40,8 +40,6 @@ public class InventoryListener implements Listener {
 
         if (inventoryHolder instanceof AdminGUI && event.getClickedInventory() != null) {
             if (event.getCurrentItem() == null) return;
-//            if (event.getSlot() > 44) event.setCancelled(true); # To cancel any interaction with the last row
-//            if (event.getClickedInventory().getType() == InventoryType.PLAYER) event.setCancelled(true);
 
             event.setCancelled(true);
             ((AdminGUI) inventoryHolder).onClick(event);

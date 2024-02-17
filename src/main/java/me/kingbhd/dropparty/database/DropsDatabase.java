@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Random;
 
 public class DropsDatabase {
     private final Dao<PlayerDrops, String> playerDropsDao;
@@ -35,9 +36,9 @@ public class DropsDatabase {
         this.plugin = plugin;
     }
 
-    public void removePlayer(String pk) {
+    public void removePlayerDrop(Integer pk) {
         try {
-            playerDropsDao.deleteById(pk);
+            playerDropsDao.deleteById(pk.toString());
         } catch (SQLException exception) {
             Logger.error(exception, "[DropParty] Failed to remove player from database.");
         }
@@ -78,81 +79,16 @@ public class DropsDatabase {
         }
     }
 
-    public List<ItemStack> getStacksByPlayer(Player player) {
+    public List<ItemStack> getStacks(Player player) {
         List<ItemStack> itemStackList = new ArrayList<>();
 
         try {
-            List<PlayerDrops> playerDropsList = playerDropsDao.queryForEq("uuid", player.getUniqueId().toString());
-            for (PlayerDrops playerDrops : playerDropsList) {
-
-                byte[] rawData = Base64.getDecoder().decode(playerDrops.getStack());
-                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawData);
-                BukkitObjectInputStream bukkitObjectInputStream = new BukkitObjectInputStream(byteArrayInputStream);
-
-                ItemStack itemStack = (ItemStack) bukkitObjectInputStream.readObject();
-
-                ItemMeta im = itemStack.getItemMeta();
-                List<String> lore = new ArrayList<>();
-                if (im != null) {
-                    if (im.hasLore()) lore = im.getLore();
-
-                    if (lore == null) lore = new ArrayList<>();
-                    lore.add("Donor: " + playerDrops.getUsername());
-                    im.getPersistentDataContainer().set(new NamespacedKey(this.plugin, "donor"), PersistentDataType.STRING, playerDrops.getUsername());
-                    im.getPersistentDataContainer().set(new NamespacedKey(this.plugin, "pk"), PersistentDataType.INTEGER, playerDrops.getId());
-                    im.setLore(lore);
-                    itemStack.setItemMeta(im);
-                }
-                itemStackList.add(itemStack);
-                bukkitObjectInputStream.close();
+            List<PlayerDrops> playerDropsList;
+            if (player == null) {
+                playerDropsList = playerDropsDao.queryForAll();
+            } else {
+                playerDropsList = playerDropsDao.queryForEq("uuid", player.getUniqueId().toString());
             }
-            return itemStackList;
-        } catch (SQLException | ClassNotFoundException | IOException exception) {
-            Logger.error(exception, "[DropParty] Failed to get player data from the database.");
-        }
-        return null;
-    }
-
-    public List<ItemStack> getStacksByPK(Integer pk) {
-        List<ItemStack> itemStackList = new ArrayList<>();
-
-        try {
-            List<PlayerDrops> playerDropsList = playerDropsDao.queryForEq("id", pk);
-            for (PlayerDrops playerDrops : playerDropsList) {
-
-                byte[] rawData = Base64.getDecoder().decode(playerDrops.getStack());
-                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawData);
-                BukkitObjectInputStream bukkitObjectInputStream = new BukkitObjectInputStream(byteArrayInputStream);
-
-                ItemStack itemStack = (ItemStack) bukkitObjectInputStream.readObject();
-
-//                ItemMeta im = itemStack.getItemMeta();
-//                List<String> lore = new ArrayList<>();
-//                if (im != null) {
-//                    if (im.hasLore()) lore = im.getLore();
-//
-//                    if (lore == null) lore = new ArrayList<>();
-//                    lore.add("Donor: " + playerDrops.getUsername());
-//                    im.getPersistentDataContainer().set(new NamespacedKey(this.plugin, "donor"), PersistentDataType.STRING, playerDrops.getUsername());
-//                    im.getPersistentDataContainer().set(new NamespacedKey(this.plugin, "pk"), PersistentDataType.INTEGER, playerDrops.getId());
-//                    im.setLore(lore);
-//                    itemStack.setItemMeta(im);
-//                }
-                itemStackList.add(itemStack);
-                bukkitObjectInputStream.close();
-            }
-            return itemStackList;
-        } catch (SQLException | ClassNotFoundException | IOException exception) {
-            Logger.error(exception, "[DropParty] Failed to get player data from the database.");
-        }
-        return null;
-    }
-
-    public List<ItemStack> getStacks() {
-        List<ItemStack> itemStackList = new ArrayList<>();
-
-        try {
-            List<PlayerDrops> playerDropsList = playerDropsDao.queryForAll();
             for (PlayerDrops playerDrops : playerDropsList) {
 
                 byte[] rawData = Base64.getDecoder().decode(playerDrops.getStack());
@@ -183,16 +119,30 @@ public class DropsDatabase {
         return null;
     }
 
-    public List<Integer> getPlayerDropPrimaryKeys() {
-        List<Integer> playersUuid = new ArrayList<>();
+    public PlayerDrops getRandomStack() {
+        Random ra = new Random();
         try {
             List<PlayerDrops> playerDropsList = playerDropsDao.queryForAll();
-            for (PlayerDrops playerDrops : playerDropsList) {
-                playersUuid.add(playerDrops.getId());
+            if (playerDropsList.isEmpty()) return null;
+
+            PlayerDrops playerDrops;
+            if (playerDropsList.size() == 1) {
+                playerDrops = playerDropsList.get(0);
+            } else {
+                playerDrops = playerDropsList.get(ra.ints(0, playerDropsList.size() - 1).findFirst().getAsInt());
             }
-            return playersUuid;
-        } catch (SQLException exception) {
-            Logger.error(exception, "[DropParty] Failed to get players pk from database.");
+
+            byte[] rawData = Base64.getDecoder().decode(playerDrops.getStack());
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawData);
+            BukkitObjectInputStream bukkitObjectInputStream = new BukkitObjectInputStream(byteArrayInputStream);
+
+            ItemStack itemStack = (ItemStack) bukkitObjectInputStream.readObject();
+            playerDrops.setItemStackList(itemStack);
+
+            bukkitObjectInputStream.close();
+            return playerDrops;
+        } catch (SQLException | ClassNotFoundException | IOException exception) {
+            Logger.error(exception, "[DropParty] Failed to get stacks groped by participants.");
         }
         return null;
     }
