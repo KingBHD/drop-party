@@ -1,0 +1,37 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: release version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build and Test
+        uses: qcastel/github-actions-maven-cmd@master
+        with:
+          maven-args: "clean install -Ddockerfile.skip -DdockerCompose.skip -Djib.skip"
+
+      - name: Release
+        uses: qcastel/github-actions-maven-release@master
+        env:
+          JAVA_HOME: /usr/lib/jvm/java-17-openjdk/
+        with:
+          maven-args: "-Dmaven.javadoc.skip=true -DskipTests -DskipITs -Dmaven.deploy.skip=true"
+          maven-servers: '[{"id": "serverId1", "username": "username", "password": "password", "privateKey": "test", "passphrase": "testes"}, {"id": "serverId2", "username": "username2", "password": "password2"}]'
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          release-branch-name: "main"
