@@ -138,6 +138,7 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         Location playerLocation = sender.getLocation();
 
         plugin.getConfig().set("location", playerLocation);
+        plugin.saveConfig();
 
         sender.sendMessage(MessagesManager.getColoredMessage(
                 "&aLocation has been set to &2&l&nX:"

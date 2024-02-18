@@ -2,8 +2,8 @@ package me.kingbhd.dropparty;
 
 import me.kingbhd.dropparty.database.DropsDatabase;
 import me.kingbhd.dropparty.listeners.InventoryListener;
+import me.kingbhd.dropparty.managers.MessagesManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -14,7 +14,6 @@ import java.util.Objects;
 
 public final class DropParty extends JavaPlugin {
     private final PluginDescriptionFile pdfFile = getDescription();
-    public String prefix = ChatColor.RED + "" + ChatColor.BOLD + '[' + ChatColor.YELLOW + ChatColor.BOLD + "DropParty" + ChatColor.RED + ChatColor.BOLD + ']';
     public String version = pdfFile.getVersion();
 
     private DropsDatabase database;
@@ -31,7 +30,7 @@ public final class DropParty extends JavaPlugin {
         saveDefaultConfig();
         registerDatabase();
 
-        Bukkit.getConsoleSender().sendMessage(prefix + " has been enabled! Version: " + version);
+        Bukkit.getConsoleSender().sendMessage(MessagesManager.getColoredMessage("&7(&b/Dropparty&7) has been enabled! &cVersion: " + version));
     }
 
     // Managers

@@ -6,15 +6,20 @@
 
     <groupId>me.kingbhd</groupId>
     <artifactId>DropParty</artifactId>
-    <version>1.0</version>
+    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>DropParty</name>
 
     <properties>
-        <java.version>1.8</java.version>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <scm>
+        <developerConnection>scm:git:https://github.com/kingbhd/drop-party.git</developerConnection>
+    </scm>
 
     <build>
         <plugins>
@@ -44,9 +49,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.3.0</version>
-                <configuration>
-                    <outputDirectory>C:\Users\BHBHD\Server\plugins</outputDirectory>
-                </configuration>
+<!--                <configuration>-->
+<!--                    <outputDirectory>C:\Users\BHBHD\Server\plugins</outputDirectory>-->
+<!--                </configuration>-->
             </plugin>
         </plugins>
         <resources>
@@ -85,7 +90,6 @@
             <artifactId>tinylog-impl</artifactId>
             <version>2.5.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.j256.ormlite/ormlite-jdbc -->
         <dependency>
             <groupId>com.j256.ormlite</groupId>
             <artifactId>ormlite-jdbc</artifactId>

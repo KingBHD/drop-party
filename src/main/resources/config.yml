@@ -10,5 +10,5 @@ message:
   dropparty-reset: "&7(&b/Dropparty&7) &cDropPart reset!"
   dropparty-cancel-success: "&7(&b/Dropparty&7) &chave been cancelled by &e&l%admin%"
   dropparty-cancel-failed: "&7(&b/Dropparty&7) &cDropParty haven't started yet!"
-  dropparty-gui-admin: "&7DropPatrty Admin"
-  dropparty-gui-player: "&7DropPatrty Donation"
+  dropparty-gui-admin: "&7(&bDropparty&7) %player%"
+  dropparty-gui-player: "&7(&bDropparty&7) Donation"
