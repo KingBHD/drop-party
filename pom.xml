@@ -4,7 +4,7 @@
 
     <groupId>me.kingbhd</groupId>
     <artifactId>DropParty</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>DropParty</name>
@@ -18,7 +18,7 @@
         <connection>scm:git:${project.scm.url}</connection>
         <developerConnection>scm:git:${project.scm.url}</developerConnection>
         <url>git@github.com:KingBHD/drop-party.git</url>
-        <tag>1.0.1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <build>
