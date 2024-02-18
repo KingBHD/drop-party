@@ -18,7 +18,10 @@
     </properties>
 
     <scm>
-        <developerConnection>scm:git:https://github.com/kingbhd/drop-party.git</developerConnection>
+        <connection>scm:git:${project.scm.url}</connection>
+        <developerConnection>scm:git:${project.scm.url}</developerConnection>
+        <url>git@github.com:KingBHD/drop-party.git</url>
+        <tag>HEAD</tag>
     </scm>
 
     <build>
@@ -52,6 +55,13 @@
 <!--                <configuration>-->
 <!--                    <outputDirectory>C:\Users\BHBHD\Server\plugins</outputDirectory>-->
 <!--                </configuration>-->
+            </plugin>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration>
+                    <scmCommentPrefix>[ci skip]</scmCommentPrefix>
+                </configuration>
             </plugin>
         </plugins>
         <resources>
