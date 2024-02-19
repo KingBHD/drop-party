@@ -37,5 +37,5 @@ jobs:
           draft: false
           generate_release_notes: true
           files: |
-            target/DropParty-$(echo ${GITHUB_REF:11}).jar
+            target/DropParty.jar
             LICENSE
