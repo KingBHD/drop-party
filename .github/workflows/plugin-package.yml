@@ -35,3 +35,5 @@ jobs:
           files: |
             target/DropParty.jar
             LICENSE
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
