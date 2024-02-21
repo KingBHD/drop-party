@@ -1,14 +1,39 @@
+# Use `/dropparty set` command to set a desired location.
+# Dropparty can only have one location save where drop party will be held by the admin,
+# Location also do not reset with the `/dropparty reset` command.
 location:
 
 
+# Common Messages
 message:
-  invalid-command: "&7(&b/Dropparty&7) &cInvalid command!"
+
+  # When a player tries to run dropparty command without dropparty.player permissions
   missing-permission-player: "&7(&b/Dropparty&7) &cYou don't have permission to use this command!"
+
+  # When an admin only command ran by a player without the dropparty.admin permission
   missing-permission-admin: "&7(&b/Dropparty&7) &cYou don't have permission to use this command!"
+
+  # When `/dropparty start`s the event
   dropparty-start: "&7(&b/Dropparty&7) &cDropparty event has been started."
+
+  # When dropparyt ends naturally
   dropparty-ended: "&7(&b/Dropparty&7) &cDropparty event has been ended."
+
+  # When `/dropparty reset` command is used to reset
   dropparty-reset: "&7(&b/Dropparty&7) &cDropPart reset!"
+
+  # BROADCAST: When `/dropparty cancel` went successfully
+  # VARIABLES:
+  # - %admin% - Player Username who ran the command
   dropparty-cancel-success: "&7(&b/Dropparty&7) &chave been cancelled by &e&l%admin%"
+
+  # When `/dropparty cancel` failed (Basically, When cancel command ran when before `/dropparty start`)
   dropparty-cancel-failed: "&7(&b/Dropparty&7) &cDropParty haven't started yet!"
+
+  # GUI TITLE: On `/dropparty show <username>`
+  # VARIABLES:
+  # - %player% - Player's Username whom donations being displayed
   dropparty-gui-admin: "&7(&bDropparty&7) %player%"
+
+  # GUI TITLE: On `/dropparty show`
   dropparty-gui-player: "&7(&bDropparty&7) Donation"
