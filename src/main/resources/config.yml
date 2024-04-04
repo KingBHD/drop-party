@@ -3,9 +3,16 @@
 # Location also do not reset with the `/dropparty reset` command.
 location:
 
+# From the center how big going to be the drop-party radius
+radius: 10
+
+# To start DropParty there must be at least x numbers of players present
+min-players: 2
 
 # Common Messages
 message:
+  # Message to display whenever min-players criteria doesn't meet
+  missing-min-players: "&7(&b/Dropparty&7) &cSkipping Dropparty, Theres no one to attend!"
 
   # When a player tries to run dropparty command without dropparty.player permissions
   missing-permission-player: "&7(&b/Dropparty&7) &cYou don't have permission to use this command!"

@@ -30,7 +30,6 @@ public class DropRunnable extends BukkitRunnable {
 
     public void start() {
         if (this.task != null) return;
-//        this.task = this.runTask(this.plugin);
         this.task = this.runTaskTimer(this.plugin, 20L, 40L);
     }
 

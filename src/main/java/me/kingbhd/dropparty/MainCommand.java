@@ -10,10 +10,12 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class MainCommand implements CommandExecutor, TabCompleter {
     public final DropParty plugin;
@@ -33,7 +35,13 @@ public class MainCommand implements CommandExecutor, TabCompleter {
                 reset(sender);
                 return true;
             } else if (args[0].equalsIgnoreCase("start")) {
-                start(sender);
+                if (args.length != 2) {
+                    start(sender, false);
+                    return true;
+                }
+
+                String force = args[1];
+                start(sender, force.equalsIgnoreCase("true"));
                 return true;
             } else if (args[0].equalsIgnoreCase("cancel")) {
                 cancel(sender);
@@ -44,12 +52,11 @@ public class MainCommand implements CommandExecutor, TabCompleter {
             }
 
             // Can be executed by Player Only
-            if (!(sender instanceof Player)) {
+            if (!(sender instanceof Player player)) {
                 sender.sendMessage(MessagesManager.getColoredMessage("This command can only be used by Player"));
                 return false;
             }
 
-            Player player = (Player) sender;
             if (!sender.hasPermission("dropparty.admin")) {
                 sender.sendMessage(MessagesManager.getColoredMessage(this.plugin.getConfig().getString("message.missing-permission-admin")));
                 return false;
@@ -88,8 +95,8 @@ public class MainCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("dropparty.admin")) return null;
 
+        List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            List<String> completions = new ArrayList<>();
             List<String> commands = new ArrayList<>();
             commands.add("show");
             commands.add("start");
@@ -102,13 +109,30 @@ public class MainCommand implements CommandExecutor, TabCompleter {
                     completions.add(c);
                 }
             }
-            return completions;
+        } else if (args.length == 2) {
+            if (args[0].startsWith("start")) {
+                completions.add("true");
+                completions.add("false");
+            }
         }
-
-        return null;
+        return completions;
     }
 
     // Command Handlers
+    public ArrayList<Player> getNearbyPlayers(Location location) {
+        if (location == null) return null;
+        double range = this.plugin.getConfig().getDouble("radius", 20);
+
+        ArrayList<Player> nearby = new ArrayList<>();
+        for (Entity e : Objects.requireNonNull(location.getWorld()).getNearbyEntities(location, range, range, range)) {
+            if (e instanceof Player) {
+                nearby.add((Player) e);
+            }
+        }
+
+        return nearby;
+    }
+
     public void open(Player player) {
         if (!player.hasPermission("dropparty.player")) {
             player.sendMessage(MessagesManager.getColoredMessage(this.plugin.getConfig().getString("message.missing-permission-player")));
@@ -129,6 +153,7 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(MessagesManager.getColoredMessage("&6/dp cancel &8To cancel the running event."));
         sender.sendMessage(MessagesManager.getColoredMessage("&6/dp reset &8To reset DropParty and to clear the donated items."));
         sender.sendMessage(MessagesManager.getColoredMessage("&6/dp set &8Set location for drop party."));
+        sender.sendMessage(MessagesManager.getColoredMessage("&6/dp start <force> &8To Start the drop party."));
         sender.sendMessage(MessagesManager.getColoredMessage("&6/dp help &8Shows this message."));
         sender.sendMessage(MessagesManager.getColoredMessage(" "));
         sender.sendMessage(MessagesManager.getColoredMessage("&7[ [ &8[&aDropParty&8] &7] ]"));
@@ -148,10 +173,19 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         ));
     }
 
-    public void start(CommandSender sender) {
+    public void start(CommandSender sender, Boolean force) {
         if (!sender.hasPermission("dropparty.admin")) {
             sender.sendMessage(MessagesManager.getColoredMessage(this.plugin.getConfig().getString("message.missing-permission-admin")));
             return;
+        }
+
+        if (!force) {
+            Location dropLocation = this.plugin.getConfig().getLocation("location");
+            List<Player> players = getNearbyPlayers(dropLocation);
+            if (players == null || players.size() < this.plugin.getConfig().getInt("min-players")) {
+                sender.sendMessage(MessagesManager.getColoredMessage(this.plugin.getConfig().getString("message.missing-min-players")));
+                return;
+            }
         }
 
         this.runnable.start();
